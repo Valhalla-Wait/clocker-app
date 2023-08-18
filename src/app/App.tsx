@@ -1,9 +1,16 @@
-import { BrowserRouter, Routes } from "react-router-dom"
+import { BrowserRouter } from "react-router-dom"
+import { TimerConteiner } from "../components/TimerConteiner/index"
+import { MainLayout } from "./layouts/mainLayout"
 
 function App() {
 
   return (
-    <div className="bg-red-200">Clocker App</div>
+    <BrowserRouter>
+      <MainLayout>
+        <TimerConteiner />
+      </MainLayout>
+    </BrowserRouter>
+    
     // <BrowserRouter>
     // <Routes>
       

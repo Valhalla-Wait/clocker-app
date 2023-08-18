@@ -1,0 +1,1 @@
+export type TimerFormates = 'single'|'interval'| 'multi'
