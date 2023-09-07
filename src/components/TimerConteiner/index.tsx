@@ -1,8 +1,6 @@
-import { useState } from "react"
 import { Route, Routes } from "react-router-dom"
 import { TimerDisplay } from "../TimerDisplay"
 import { navElements, TypeNavigation } from "../TypeNavigation"
-import { TimerFormates } from "./types"
 
 
 export const TimerConteiner = () => {

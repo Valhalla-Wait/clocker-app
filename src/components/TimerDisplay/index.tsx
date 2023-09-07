@@ -1,10 +1,10 @@
-// import { TimePicker } from "@mui/lab"
-import { CircularProgress } from "@mui/material"
-import { LocalizationProvider, MultiSectionDigitalClock, TimeClock } from "@mui/x-date-pickers"
+import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns"
 import { useEffect, useRef, useState } from 'react'
+import { Modal } from "../../shared/ui/Modal"
 import { TimerFormates } from "../TimerConteiner/types"
-// // import {useState} from "React"
+import { TimerProgress } from "./TimerProgress"
+import { ControlButton, ControlButtonTypes } from "../../shared/ui/Buttons/ControlButton"
 
 type IntervalType = {
     id: number
@@ -21,13 +21,13 @@ export const TimerDisplay = ({ format }: {
     const [intervals, setIntervals] = useState<IntervalType[]>([])
     const [intervalValue, setIntervalValue] = useState<number | null>(null)
     const [currentInterval, setCurrentInterval] = useState<IntervalType | null>(null)
-    const [clock, setClock] = useState<Date>(() => new Date())
+    const [showModal, setShowModal] = useState(false)
     const countRef = useRef(0)
 
-    useEffect(() =>{
-        if(format === 'multi' && intervals.length && time === 0 && currentInterval) {
+    useEffect(() => {
+        if (format === 'multi' && intervals.length && time === 0 && currentInterval) {
             const nextInterval = intervals.find(interval => interval.id === currentInterval.id + 1)
-            if(!nextInterval) return handleReset()
+            if (!nextInterval) return handleReset()
             setIntervals(prev => {
                 const prevIntervalIndex = prev.findIndex(i => i.id === currentInterval.id)
                 const copy = [...prev]
@@ -36,7 +36,7 @@ export const TimerDisplay = ({ format }: {
             })
             console.log(nextInterval)
             debugger
-            if(nextInterval) {
+            if (nextInterval) {
                 setCurrentInterval(nextInterval)
                 setTime(nextInterval.time)
             }
@@ -49,7 +49,7 @@ export const TimerDisplay = ({ format }: {
         if (format === 'interval') countRef.current = setInterval(() => {
             setTime((time) => time - 1)
         }, 1000)
-        else if(format === 'multi' && intervals.length){
+        else if (format === 'multi' && intervals.length) {
             setCurrentInterval(intervals[0])
             setTime(intervals[0].time)
             countRef.current = setInterval(() => setTime((time) => time - 1), 1000)
@@ -58,27 +58,25 @@ export const TimerDisplay = ({ format }: {
             setTime((time) => time + 1)
         }, 1000)
     }
-    const handleIntervals = (e:React.ChangeEvent<HTMLInputElement>) => {
-        const intervalTimeValue =Number(e.currentTarget.value) 
-        if(intervalTimeValue) {
+    const handleIntervals = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const intervalTimeValue = Number(e.currentTarget.value)
+        if (intervalTimeValue) {
             setIntervalValue(intervalTimeValue)
         }
     }
 
     const addInterval = () => {
-        if(intervalValue) return setIntervals(prev => [...prev, {
+        if (intervalValue) return setIntervals(prev => [...prev, {
             id: prev.length,
             time: intervalValue * 60,
-            isPassed:false
+            isPassed: false
         }])
     }
-    console.log(intervals)
-    console.log(time)
 
     const handleReset = () => {
         setIsActive(false)
         setIsPaused(false)
-        setIntervals(prev => [...prev].map(i => ({...i, isPassed: false})))
+        setIntervals(prev => [...prev].map(i => ({ ...i, isPassed: false })))
         setCurrentInterval(null)
         setTime(0)
         clearInterval(countRef.current)
@@ -101,7 +99,7 @@ export const TimerDisplay = ({ format }: {
     const handleInputTimer = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTime(Number(e.currentTarget.value) * 60)
     }
-    const formatTime = (seconds?:number) => {
+    const formatTime = (seconds?: number) => {
         const secs = seconds ? seconds : time
 
         const getSeconds = `0${(secs % 60)}`.slice(-2)
@@ -114,29 +112,39 @@ export const TimerDisplay = ({ format }: {
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <div className='grid justify-center justify-items-center'>
+                {showModal && <Modal>Hello</Modal>}
+
                 {format === 'interval' && <input type="text" placeholder="input min pls" onChange={handleInputTimer} />}
-                { format === 'multi' && 
-                <>
-                <input type="text" placeholder="add interval" onChange={handleIntervals} />
-                <button onClick={addInterval}>Add</button>
-                <div>
-                    Intervals:
-                    {intervals.map(i => <div className="grid justify-between">{formatTime(i.time)} {i.isPassed && "X"}</div>)}
-                </div>
-                </>
-                }
-                <CircularProgress variant="determinate" size={100} value={time} />
-                <br />
-                {formatTime()}
-                <br />
-                
-                {(isActive && !isPaused) && <button onClick={handlePaused} className="text-white bg-blue-600 m-3 px-3">Pause</button>}
-                {
-                    (isActive && isPaused) && <>
-                        <button onClick={handleResume} className="text-white bg-blue-600 m-3 px-3">Resume</button>
+
+                {format === 'multi' &&
+                    <>
+                        <input type="text" placeholder="add interval" onChange={handleIntervals} />
+                        <button onClick={addInterval}>Add</button>
+                        <div>
+                            Intervals:
+                            {intervals.map(i => <div className="grid justify-between">{formatTime(i.time)} {i.isPassed && "X"}</div>)}
+                        </div>
                     </>
                 }
-                {!isActive ? <button onClick={handleStart} className="text-white bg-blue-600 m-3 px-3">Start</button> : <button onClick={handleReset} className="text-white bg-blue-600 m-3 px-3">Reset</button>}
+                
+                <br />
+
+                <TimerProgress reset={!isActive} pause={isPaused} time={formatTime()} />
+
+                <br />
+
+                {(isActive && !isPaused) && <ControlButton onClick={handlePaused} type={ControlButtonTypes.pause} />
+                }
+                {
+                    (isActive && isPaused) &&
+                    <ControlButton onClick={handleStart} type={ControlButtonTypes.play} />
+                }
+                {
+                    !isActive ?
+                        <ControlButton onClick={handleStart} type={ControlButtonTypes.play} />
+                        :
+                        <ControlButton onClick={handleReset} type={ControlButtonTypes.reset} />
+                }
 
                 {/* <TimeClock value={clock} onChange={(e)=> console.log(e?.getMinutes())}/> */}
                 {/* <MultiSectionDigitalClock  disablePast value={clock} onChange={(e) => setClock(e as Date)} views={['minutes', 'seconds']} />
