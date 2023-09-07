@@ -112,7 +112,6 @@ export const TimerDisplay = ({ format }: {
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <div className='grid justify-center justify-items-center'>
-                {showModal && <Modal>Hello</Modal>}
 
                 {format === 'interval' && <input type="text" placeholder="input min pls" onChange={handleInputTimer} />}
 
@@ -137,7 +136,7 @@ export const TimerDisplay = ({ format }: {
                 }
                 {
                     (isActive && isPaused) &&
-                    <ControlButton onClick={handleStart} type={ControlButtonTypes.play} />
+                    <ControlButton onClick={handleResume} type={ControlButtonTypes.play} />
                 }
                 {
                     !isActive ?
